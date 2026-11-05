@@ -27,6 +27,12 @@ spec:
     # The page shell every page shares: the sidebar (pages register their entry), quick capture, and the paper look.
     - id: hub-shell
       name: hub-shell
+    # Tasks: the /tasks page, and the Next actions part on My Day.
+    - id: tasks
+      name: tasks
+    # Notes: the /notes list and the /notes/:id editor, and the Recent notes cards on My Day.
+    - id: notes
+      name: notes
     # The week calendar (/calendar) with overlap warnings, and This week in My Day's right rail.
     - id: calendar
       name: calendar
