@@ -1,4 +1,4 @@
-# productivity-hub
+# Productivity Hub
 
 A Cordis app on the ACRYL framework: TypeScript that Node 22.19 or newer runs directly (no build step; erasable syntax only, so no enums and no
 parameter properties). Every part of it is a Cordis plugin.
@@ -132,8 +132,17 @@ The door is a command in this folder, `.acryl/bin/acryl`, that lets you look at 
 - Every verb takes `--json`. The exit code is 0 for done, 1 when the verb failed, 2 for a usage error and 3 when no app is running in this folder.
 - `plugin add plugins/<name>` checks the plugin, installs it and makes it live without a restart (the `extensions` plugin does this; every template that has the door has it, in development only: it is left out with `NODE_ENV=production`). `tool call` reaches only the tools on the door's allowlist (empty by default). On Windows the command is `.acryl\bin\acryl.cmd`.
 
-## This app (blank)
+## This app: Productivity Hub
 
-The first screen (`src/routes.ts`) shows the app's name and, below it, the widget of every plugin that registers one with `ctx.home.widget`
-(the `home` row). A new feature is a plugin of its own with its row in `blend.yaml`, never a change to `src/routes.ts`. `acrylblends add <plugin>`
-copies another library plugin (for example `acryl-state`) into `plugins/`.
+A personal workbench: My Day (`/`), Inbox (`/inbox`), All tasks (`/tasks`), Notes (`/notes`, `/notes/:id`) and Calendar (`/calendar`). Each
+page is its own plugin in `plugins/<page>/` with its own row in `blend.yaml`; there is no feature code in `src/`.
+
+- `plugins/productivity-hub/` is the domain: `domain.ts` (types and pure rules: days, weeks, overlaps, validation), `seed.ts` (the first
+  launch's data), `store.ts` (the `HubStore` port: `jsonFileStore` under the app's home, `memoryStore` in tests) and `hub.ts` (`ctx.hub`, the
+  only way to read or change state). A broken rule throws `HubError` (`invalid` or `not-found`).
+- `plugins/hub-shell/` is the page shell (`ctx.hubShell`): the sidebar a page joins with `nav(...)`, quick capture, `page(...)`,
+  `header(...)`, `href(path)` for every link (the app is under `/app` in the frame) and the look (`styles.ts`, light and dark tokens). Its
+  README shows a whole page plugin.
+- My Day shows the other pages' parts through `ctx.home.widget(...)`: `tasks` (Next actions), `notes` (Recent notes), `calendar` (the right rail).
+- A new page: copy the shape in `plugins/hub-shell/README.md`, add its row between `hub-shell` and `extensions`, and a `test/<page>.test.ts`
+  with `withApp` from `test/support.ts` (memory store, the clock at Thursday 5 November 2026, 08:40).
