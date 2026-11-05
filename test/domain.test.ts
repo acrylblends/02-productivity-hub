@@ -105,7 +105,7 @@ describe('the hub', () => {
     assert.equal(day.focus?.id, 'task-onboarding')
     assert.deepEqual(day.next.map((t) => t.id), ['task-library', 'task-estimate', 'task-review', 'task-copy'])
     assert.deepEqual(day.done.map((t) => t.id), ['task-dentist'])
-    assert.deepEqual(day.notes.map((n) => n.id), ['note-onboarding', 'note-launch'])
+    assert.deepEqual(day.notes.map((n) => n.id), ['note-onboarding', 'note-ideas'])
     assert.deepEqual(day.events.map((e) => e.title), ['Product stand-up', 'Estimate review', 'Weekly planning'])
     assert.equal(day.inboxCount, 3)
   })

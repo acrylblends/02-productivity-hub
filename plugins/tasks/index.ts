@@ -4,12 +4,11 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import { Acryl } from '../acryl-router/src/index.ts'
-import type {} from '../home/index.ts'
 import type {} from '../hub-shell/index.ts'
 import type { Task } from '../productivity-hub/index.ts'
 
 export const name = 'tasks'
-export const inject = ['router', 'hub', 'hubShell', 'home']
+export const inject = ['router', 'hub', 'hubShell']
 
 const escapeHtml = (text: string): string =>
   text
@@ -234,16 +233,6 @@ ${query.status === 'open' && remaining > 0 ? `<p class="p-done">${String(remaini
   return shell.page({ active: 'tasks', title: 'All tasks', main: body })
 }
 
-function widgetFor(ctx: Context): string {
-  const shell = ctx.hubShell
-  const hub = ctx.hub
-  const nowDay = dayOf(hub.now())
-  const next = hub.day().next.slice(0, 4)
-  if (next.length === 0) return `<div class="p-empty"><b>Nothing due today.</b>Keep the day intentional.</div>`
-  return `${next.map((task) => taskRow(ctx, task, nowDay)).join('')}
-<p class="p-done"><a class="p-link" href="${shell.href('/tasks')}">All tasks →</a></p>`
-}
-
 export function apply(ctx: Context): void {
   const shell = ctx.hubShell
   const prefix = shell.prefix === '' ? '/' : shell.prefix
@@ -309,5 +298,4 @@ export function apply(ctx: Context): void {
     })
   ctx.router.route(prefix, app)
   ctx.effect(() => shell.nav({ id: 'tasks', label: 'All tasks', icon: '☷', path: '/tasks', order: 30 }))
-  ctx.effect(() => ctx.home.widget({ id: 'tasks', title: 'Next actions', render: () => widgetFor(ctx) }))
 }

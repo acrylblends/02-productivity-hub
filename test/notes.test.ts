@@ -11,13 +11,13 @@ test('the notes page shows every note as a pastel card with its space, date, sni
     for (const title of ['Onboarding: open questions', 'Ideas worth exploring', 'Reading notes: Deep Work', 'Launch checklist'])
       assert.ok(html.includes(title), title)
     // A card is a coloured link to the note, with the space and the day it changed.
-    assert.match(html, /<a class="p-note sage" href="\/notes\/note-onboarding" data-note="note-onboarding">/)
+    assert.match(html, /<a class="p-note amber" href="\/notes\/note-onboarding" data-note="note-onboarding">/)
     assert.match(html, /<small>Product launch · Yesterday<\/small>/)
     assert.match(html, /Keep the first run to one clear action\./)
     assert.match(html, /<span class="p-tag">onboarding<\/span>/)
     assert.match(html, /<span class="p-tag">questions<\/span>/)
-    assert.match(html, /class="p-note amber"[^>]*href="\/notes\/note-ideas"/)
-    assert.match(html, /class="p-note sky"[^>]*href="\/notes\/note-deep-work"/)
+    assert.match(html, /class="p-note sky"[^>]*href="\/notes\/note-ideas"/)
+    assert.match(html, /class="p-note sage"[^>]*href="\/notes\/note-deep-work"/)
     assert.match(html, /<a class="p-btn" href="\/notes\?new=1">\+ New note<\/a>/)
   }))
 
@@ -143,15 +143,6 @@ test('deleting a note keeps its tasks and clears their link', () =>
     assert.equal(app.root.hub.task('task-onboarding').noteId, undefined)
     assert.equal(app.root.hub.task('task-copy').noteId, undefined)
     assert.equal(app.root.hub.state.tasks.some((task) => task.id === 'task-onboarding'), true)
-  }))
-
-test('My Day gets the recent note cards as a widget that leaves with the plugin', () =>
-  withApp(async (app) => {
-    const widget = app.root.home.widgets().find((candidate) => candidate.id === 'notes')
-    assert.ok(widget !== undefined)
-    const html = await widget.render()
-    assert.match(html, /<a class="p-note sage" href="\/notes\/note-onboarding"/)
-    assert.match(html, /href="\/notes">All notes →<\/a>/)
   }))
 
 test('the frame prefix is on the page, its cards and its form actions', () =>

@@ -26,9 +26,10 @@ test('My Day shows the seed day: the focus with its steps, next actions, the ove
     assert.match(html, /class="p-when overdue">OVERDUE</)
     assert.match(html, /One task completed today/)
     assert.match(html, /Onboarding: open questions/)
-    assert.match(html, /Launch checklist/)
-    // The rail: this week's days, today's events and what is next.
-    assert.match(html, /<aside class="p-rail" data-widget="agenda">/)
+    assert.match(html, /<a class="p-note sky" href="\/notes\/note-ideas">/)
+    // The rail: the calendar's widget (this week's days, today's events and what is next), then the page's quote.
+    assert.match(html, /<aside class="p-rail" data-widget="calendar">[\s\S]*<blockquote class="p-quote">/)
+    assert.equal(html.match(/class="p-quote"/g)?.length, 1)
     assert.match(html, /This week/)
     assert.match(html, /Product stand-up/)
     assert.match(html, /Estimate review/)
@@ -111,22 +112,28 @@ test('the daily focus: picked from the page when none is set, then shown with it
     { state: { ...seedState, focus: undefined } },
   ))
 
-test('My Day links to the other pages and shows their widgets only when they are mounted', () =>
-  withApp(async (app) => {
-    const before = await app.page('/')
-    assert.doesNotMatch(before.html, /New task/)
-    assert.match(before.html, /<aside class="p-rail" data-widget="agenda">/)
-    app.root.hubShell.nav({ id: 'tasks', label: 'All tasks', icon: '☷', path: '/tasks', order: 30 })
-    app.root.hubShell.nav({ id: 'notes', label: 'Notes', icon: '▤', path: '/notes', order: 40 })
-    app.root.home.widget({ id: 'calendar', title: 'This week', render: () => '<p id="cal">the week</p>' })
-    app.root.home.widget({ id: 'notes-widget', title: 'All notes', render: () => '<p id="notes-widget">the notes</p>' })
-    const after = await app.page('/')
-    assert.match(after.html, /\+ New task/)
-    assert.match(after.html, /href="\/tasks\/task-onboarding">Open task ↗/)
-    assert.match(after.html, /href="\/notes\/note-onboarding"/)
-    assert.match(after.html, /<aside class="p-rail" data-widget="calendar"><p id="cal">the week<\/p>/)
-    assert.match(after.html, /<section class="p-widget" data-widget="notes-widget"><h2>All notes<\/h2><p id="notes-widget">the notes<\/p><\/section>/)
-  }))
+test('My Day links to the other pages only while they are mounted, and puts other widgets in its main column', async () => {
+  await withApp(
+    async (app) => {
+      const { html } = await app.page('/')
+      assert.doesNotMatch(html, /New task|Open task|View all/)
+      assert.match(html, /<aside class="p-rail" data-widget="agenda">/)
+      assert.match(html, /<article class="p-note amber">/)
+      app.root.home.widget({ id: 'reading', title: 'Reading', render: () => '<p id="reading">two books</p>' })
+      assert.match((await app.page('/')).html, /<section class="p-widget" data-widget="reading"><h2>Reading<\/h2><p id="reading">two books<\/p><\/section>/)
+    },
+    { off: ['tasks', 'notes', 'calendar'] },
+  )
+  await withApp(async (app) => {
+    const { html } = await app.page('/')
+    assert.match(html, /<a class="p-btn" href="\/tasks\?new=1">\+ New task<\/a>/)
+    assert.match(html, /href="\/tasks\?edit=task-onboarding">Open task ↗/)
+    assert.match(html, /<a class="p-note amber" href="\/notes\/note-onboarding">/)
+    assert.match(html, /href="\/notes">View all →/)
+    for (const [label, order] of [['My day', 0], ['Inbox', 1], ['All tasks', 2], ['Notes', 3], ['Calendar', 4]] as const)
+      assert.equal(app.root.hubShell.navItems()[order]?.label, label)
+  })
+})
 
 test('the page mounts under the frame prefix, links under it, and its forms land there', () =>
   withApp(
@@ -137,7 +144,8 @@ test('the page mounts under the frame prefix, links under it, and its forms land
       assert.match(html, /action="\/app\/day\/tasks\/task-copy\/complete"/)
       const done = await app.post('/day/tasks/task-copy/complete', {})
       assert.equal(done.status, 303)
-      assert.equal(done.headers.get('location'), '/app/?ok=Task%20completed.')
+      assert.equal(done.headers.get('location'), '/app?ok=Task%20completed.')
+      assert.equal((await app.root.router.request('/app', { headers: { accept: 'text/html' } })).status, 200)
     },
     { prefix: '/app' },
   ))

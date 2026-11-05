@@ -146,16 +146,6 @@ test('the edit form saves every field, and an invalid edit keeps the old one', (
     assert.equal(app.root.hub.task('task-copy').title, 'Review the onboarding copy')
   }))
 
-test('My Day gets the next actions as a widget that leaves with the plugin', () =>
-  withApp(async (app) => {
-    const widget = app.root.home.widgets().find((candidate) => candidate.id === 'tasks')
-    assert.ok(widget !== undefined)
-    const html = await widget.render()
-    assert.match(html, /Review onboarding copy/)
-    assert.match(html, /class="p-check"/)
-    assert.match(html, /href="\/tasks">All tasks →<\/a>/)
-  }))
-
 test('the frame prefix is on every route and every link', () =>
   withApp(
     async (app) => {

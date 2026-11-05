@@ -4,12 +4,11 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import { Acryl } from '../acryl-router/src/index.ts'
-import type {} from '../home/index.ts'
 import type {} from '../hub-shell/index.ts'
 import type { Note } from '../productivity-hub/index.ts'
 
 export const name = 'notes'
-export const inject = ['router', 'hub', 'hubShell', 'home']
+export const inject = ['router', 'hub', 'hubShell']
 
 const escapeHtml = (text: string): string =>
   text
@@ -240,14 +239,6 @@ function notFoundPage(ctx: Context): string {
   })
 }
 
-function widgetFor(ctx: Context): string {
-  const shell = ctx.hubShell
-  const recent = ctx.hub.day().notes
-  if (recent.length === 0) return `<div class="p-empty"><b>No notes yet.</b>Write the first one.</div>`
-  return `<div class="p-notegrid">${recent.map((note) => noteCard(ctx, note)).join('')}</div>
-<p class="p-done"><a class="p-link" href="${shell.href('/notes')}">All notes →</a></p>`
-}
-
 export function apply(ctx: Context): void {
   const shell = ctx.hubShell
   const prefix = shell.prefix === '' ? '/' : shell.prefix
@@ -325,5 +316,4 @@ export function apply(ctx: Context): void {
     })
   ctx.router.route(prefix, app)
   ctx.effect(() => shell.nav({ id: 'notes', label: 'Notes', icon: '▤', path: '/notes', order: 40 }))
-  ctx.effect(() => ctx.home.widget({ id: 'notes', title: 'Recent notes', render: () => widgetFor(ctx) }))
 }

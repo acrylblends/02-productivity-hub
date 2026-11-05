@@ -123,7 +123,7 @@ describe('/calendar', () => {
         const { status, html } = await app.page('/calendar')
         assert.equal(status, 200)
         assert.match(html, /action="\/app\/calendar\/events"/)
-        assert.doesNotMatch(html, /(?:href|action)="\/(?!app\/)/)
+        assert.doesNotMatch(html, /(?:href|action)="\/(?!app(?:\/|"))/)
       },
       { prefix: FRAME_MOUNT_PREFIX },
     ))

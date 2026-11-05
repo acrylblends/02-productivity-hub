@@ -67,8 +67,7 @@ export function agendaRail(hub: Hub, shell: HubShell): string {
 <span class="p-label">${fmt(today, { weekday: 'long' })} <small>${count(todays.length)}</small></span>
 ${todays.length === 0 ? '<p class="p-empty">Nothing on the calendar today.</p>' : todays.map((e) => eventLine(e, clash(e.id))).join('')}
 ${nextDay === undefined ? '' : `<hr><span class="p-label">Up next <small>${fmt(nextDay, { weekday: 'long' })}</small></span>${nextEvents.map((e) => eventLine(e, clash(e.id))).join('')}`}
-<a class="p-add" href="${shell.href('/calendar#add')}">+ Add event</a>
-<blockquote class="p-quote">“You don't need more time.<br>You need fewer priorities.”</blockquote>`
+<a class="p-add" href="${shell.href('/calendar#add')}">+ Add event</a>`
 }
 
 const CSS = `<style>

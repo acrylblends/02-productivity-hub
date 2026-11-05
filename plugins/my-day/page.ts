@@ -130,7 +130,7 @@ function taskRow(task: TaskLike, projects: readonly ProjectLike[], today: string
 
 function focusCard(view: DayLike, projects: readonly ProjectLike[], openTasks: readonly TaskLike[], shell: ShellLike): string {
   const open = shell.has('tasks') && view.focus !== undefined
-    ? `<a class="p-link" href="${esc(shell.href(`/tasks/${view.focus.id}`))}">Open task ↗</a>`
+    ? `<a class="p-link" href="${esc(shell.href(`/tasks?edit=${encodeURIComponent(view.focus.id)}`))}">Open task ↗</a>`
     : ''
   if (view.focus === undefined) {
     const options = openTasks
@@ -193,7 +193,7 @@ function agendaRail(week: WeekLike, today: string, hasCalendar: boolean, shell: 
   const days = week.days.slice(0, 5)
   const last = week.days[week.days.length - 1]?.day ?? week.start
   const strip = days.map((entry) => {
-    const href = hasCalendar ? ` href="${esc(shell.href(`/calendar?day=${entry.day}`))}"` : ''
+    const href = hasCalendar ? ` href="${esc(shell.href(`/calendar?week=${entry.day}`))}"` : ''
     const current = entry.day === today ? ' class="today"' : ''
     return `<a${href}${current}><span>${weekdayShort(entry.day)}</span><b>${String(dayNumber(entry.day))}</b></a>`
   }).join('')
@@ -202,7 +202,7 @@ function agendaRail(week: WeekLike, today: string, hasCalendar: boolean, shell: 
   const arrows = hasCalendar
     ? `<a href="${esc(shell.href('/calendar'))}" aria-label="Open the calendar">‹</a><a href="${esc(shell.href('/calendar'))}" aria-label="Open the calendar">›</a>`
     : '<span class="p-arrow" aria-hidden="true">‹</span><span class="p-arrow" aria-hidden="true">›</span>'
-  const add = hasCalendar ? `<a class="p-add" href="${esc(shell.href('/calendar'))}">+ Add event</a>` : ''
+  const add = hasCalendar ? `<a class="p-add" href="${esc(shell.href('/calendar#add'))}">+ Add event</a>` : ''
   return `<div class="p-week"><div><h2>This week</h2><small>${esc(weekRange(week.start, last))}</small></div>${arrows}</div>
 <div class="p-days">${strip}</div>
 <hr>
@@ -220,7 +220,7 @@ export async function myDayPage(input: MyDayInput): Promise<string> {
   const lead = plate === 0
     ? 'A clear plate. Keep the day intentional.'
     : `${numberWord(plate)} ${plate === 1 ? 'thing' : 'things'} on your plate. Keep the day intentional.`
-  const action = shell.has('tasks') ? `<a class="p-btn" href="${esc(shell.href('/tasks'))}">+ New task</a>` : ''
+  const action = shell.has('tasks') ? `<a class="p-btn" href="${esc(shell.href('/tasks?new=1'))}">+ New task</a>` : ''
   const header = shell.header({ eyebrow: longDate(today), title: 'Make room for good work.', lead, action })
 
   const remaining = view.next.length

@@ -94,7 +94,8 @@ addEventListener('keydown',function(e){if((e.metaKey||e.ctrlKey)&&e.key.toLowerC
 
 export function createShell(hub: Hub, prefix: string): HubShell {
   const items = new Map<string, NavItem>()
-  const href = (path: string): string => `${prefix}${path.startsWith('/') ? path : `/${path}`}`
+  // Under a prefix the app's root is the prefix itself (`/app`, not `/app/`); every other path hangs below it.
+  const href = (path: string): string => (path === '/' && prefix !== '' ? prefix : `${prefix}${path.startsWith('/') ? path : `/${path}`}`)
   const navItems = () => [...items.values()].sort((a, b) => a.order - b.order)
 
   const sidebar = (active: string | undefined): string => {

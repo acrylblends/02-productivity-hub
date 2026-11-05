@@ -57,6 +57,6 @@ export function apply(ctx: Context): void {
     })
 
   ctx.router.route(shell.prefix === '' ? '/' : shell.prefix, app)
-  // The app's root is also linked as `<prefix>/` (the shell's logo and My day entry): serve the day there too, not only at `<prefix>`.
+  // The frame opens the app's tile at `<prefix>/` and the router tells `/app` from `/app/`: serve the day at both. Links use `<prefix>` (shell.href('/')).
   if (shell.prefix !== '') ctx.router.route(`${shell.prefix}/`, new Acryl().get('/', async (c) => c.html(await render(c.req.url))))
 }

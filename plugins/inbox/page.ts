@@ -34,8 +34,8 @@ export interface InboxInput {
 const STYLES = `<style>
 .p-inbox-text{font:500 19px Georgia,serif;margin:0 0 4px;overflow-wrap:anywhere}
 .p-inbox-when{color:var(--muted);font-size:11px;margin:0 0 14px}
-.p-inbox-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.p-inbox-actions form{margin:0}
+.p-inbox-actions{display:flex;flex-wrap:wrap;gap:8px}
+.p-inbox-form{margin:22px 0 26px}
 .p-inbox-capture{display:flex;gap:10px;align-items:center}
 .p-inbox-capture input{flex:1}
 </style>`
@@ -52,13 +52,13 @@ function itemCard(item: InboxItemLike, input: InboxInput): string {
   <div class="row">
     <label class="p-field">Due <input type="date" name="dueAt" value="${esc(today)}"></label>
     <label class="p-field">Space <select name="projectId"><option value="">No space</option>${spaces}</select></label>
-    <button class="p-btn" type="submit">Make task</button>
+    <div class="p-inbox-actions">
+      <button class="p-btn" type="submit">Make task</button>
+      <button class="p-btn ghost" type="submit" formaction="${esc(shell.href(`/inbox/${item.id}/note`))}">Make note</button>
+      <button class="p-btn danger" type="submit" formaction="${esc(shell.href(`/inbox/${item.id}/discard`))}" formnovalidate>Discard</button>
+    </div>
   </div>
 </form>
-<div class="p-inbox-actions">
-  <form method="post" action="${esc(shell.href(`/inbox/${item.id}/note`))}"><button class="p-btn ghost" type="submit">Make note</button></form>
-  <form method="post" action="${esc(shell.href(`/inbox/${item.id}/discard`))}"><button class="p-btn danger" type="submit">Discard</button></form>
-</div>
 </article>`
 }
 
@@ -70,7 +70,7 @@ export function inboxPage(input: InboxInput): string {
     ? 'Inbox zero. Capture anything that needs a place.'
     : `${String(count)} ${count === 1 ? 'thing' : 'things'} to triage. Turn each into a task or a note.`
   const header = shell.header({ eyebrow: 'Inbox', title: 'Clear the noise.', lead })
-  const capture = `<form class="p-card p-form" method="post" action="${esc(shell.href('/inbox'))}">
+  const capture = `<form class="p-card p-form p-inbox-form" method="post" action="${esc(shell.href('/inbox'))}">
 <div class="p-inbox-capture"><input class="p-input" id="inbox-capture" name="text" placeholder="Capture anything..." aria-label="Capture anything" maxlength="500" required autocomplete="off"><button class="p-btn" type="submit">Capture</button></div>
 </form>`
   const body = count === 0
