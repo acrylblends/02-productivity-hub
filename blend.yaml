@@ -27,6 +27,11 @@ spec:
     # The page shell every page shares: the sidebar (pages register their entry), quick capture, and the paper look.
     - id: hub-shell
       name: hub-shell
+    # The day's page (route /) and the inbox (route /inbox): each a plugin folder of its own, mounted between the shell and the extensions row.
+    - id: my-day
+      name: my-day
+    - id: inbox
+      name: inbox
     # Tasks: the /tasks page, and the Next actions part on My Day.
     - id: tasks
       name: tasks

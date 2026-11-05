@@ -5,6 +5,7 @@ import { createServer } from 'node:net'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import { pinnedInstance, withPort } from '../plugins/instance/index.ts'
+import { createShell } from '../plugins/hub-shell/index.ts'
 import { createApp } from '../src/app.ts'
 import { FRAME_MOUNT_PREFIX } from '../src/routes.ts'
 import { projectRoot, withApp } from './support.ts'
@@ -46,24 +47,18 @@ test('opens the hub over the seed on the first launch and saves it at once', () 
     assert.equal(app.root.hub.day().day, '2026-11-05')
   }))
 
-test('a page registers its sidebar entry, quick capture follows the inbox entry, and both leave with the plugin', () =>
+test('a page registers its sidebar entry, quick capture follows the inbox entry, and both leave with the shell', () =>
   withApp(async (app) => {
-    const shell = app.root.hubShell
+    // A shell of its own: the app's inbox plugin already has an entry in the app's shell, and this test is about the shell's registration.
+    const shell = createShell(app.root.hub, '')
     const page = () => shell.page({ title: 'Test', main: '<p id="body">hi</p>' })
     assert.doesNotMatch(page(), /id="capture"/)
-    const feature = app.root.plugin({
-      name: 'inbox-test',
-      inject: ['hubShell', 'hub'],
-      apply(ctx: typeof app.root) {
-        ctx.effect(() => ctx.hubShell.nav({ id: 'inbox', label: 'Inbox', icon: '▦', path: '/inbox', order: 20, count: () => ctx.hub.inbox().length }))
-      },
-    })
-    await feature.await()
+    const dispose = shell.nav({ id: 'inbox', label: 'Inbox', icon: '▦', path: '/inbox', order: 20, count: () => app.root.hub.inbox().length })
     const html = page()
     assert.match(html, /<a href="\/inbox"><span aria-hidden="true">▦<\/span><span>Inbox<\/span><em>3<\/em><\/a>/)
     assert.match(html, /<form class="p-capture" method="post" action="\/inbox">/)
     assert.match(html, /Product launch[\s\S]*Personal[\s\S]*Reading list/)
-    await feature.dispose()
+    dispose()
     assert.doesNotMatch(page(), /Inbox|id="capture"/)
   }))
 
