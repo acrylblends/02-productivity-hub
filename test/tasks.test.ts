@@ -21,6 +21,8 @@ test('the tasks page lists every open task with its space, estimate, priority an
     assert.match(html, /Product launch · 30 min · Normal/)
     assert.match(html, /Personal · 20 min · Normal/)
     assert.match(html, /Product launch · 15 min · High/)
+    // The due label reads as one string: the shell must not tint its first letter (an 11:30 whose 1 is orange looks broken).
+    assert.doesNotMatch(html, /\.p-when::first-letter/u)
     // The due label and the overdue state.
     assert.match(html, /<em class="p-when">11:30<\/em>/)
     assert.match(html, /<em class="p-when overdue">Overdue<\/em>/)

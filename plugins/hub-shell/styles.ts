@@ -50,7 +50,7 @@ button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;bo
 .p-check:hover{background:var(--sage)}.p-task.done .p-check{background:var(--sage-fill);color:var(--accent-ink)}
 .p-task .what{min-width:0;flex:1}.p-task b{display:block;font-size:13px;font-weight:600}.p-task.done b{text-decoration:line-through;color:var(--muted);font-weight:500}
 .p-task small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
-.p-when{margin-left:auto;font-style:normal;color:var(--muted);font-size:11px;letter-spacing:.04em;white-space:nowrap}.p-when::first-letter{color:var(--bar-personal)}
+.p-when{margin-left:auto;font-style:normal;color:var(--muted);font-size:11px;letter-spacing:.04em;white-space:nowrap}
 .p-when.overdue{color:var(--warn);background:var(--warn-soft);padding:3px 7px;border-radius:5px;font-weight:600}
 .p-done{font-size:11px;color:var(--sage-text);padding:13px 0}
 .p-notegrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
