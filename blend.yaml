@@ -27,6 +27,9 @@ spec:
     # The page shell every page shares: the sidebar (pages register their entry), quick capture, and the paper look.
     - id: hub-shell
       name: hub-shell
+    # The week calendar (/calendar) with overlap warnings, and This week in My Day's right rail.
+    - id: calendar
+      name: calendar
     # A feature is a plugin: its folder plugins/<name>/ plus a row of its own above this one (`- id: notes` / `name: notes`), which Settings > Plugins
     # switches with `disabled: true`. This row starts the folders that have no row yet (a live install with `.acryl/bin/acryl plugin add`); a folder with
     # a row is never started twice. Read-only when NODE_ENV=production.

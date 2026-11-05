@@ -74,6 +74,8 @@ export interface AppOptions {
   readonly listen?: boolean
   /** Config merged over a row's own, by row id: tests pass fakes this way (`{ 'productivity-hub': { store: memoryStore(), clock } }`). */
   readonly overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  /** Plugins switched off, by name, as `disabled: true` in blend.yaml (Settings > Plugins) does: tests check that a page leaves cleanly. */
+  readonly off?: readonly string[]
 }
 
 /** The rows the frame host provides: the app contributes only the plugins that are its own. */
@@ -107,6 +109,7 @@ export async function composeInto(
   const leaveOut = new Set<string>(options.host === true ? HOST_ROWS : [])
   if (!own) leaveOut.add('acryl-node-server').add('acryl-door')
   if (!doorEnabled()) leaveOut.add('acryl-door')
+  for (const use of options.off ?? []) leaveOut.add(use)
   const manifest = without(read, ...leaveOut)
   // The rows that name one of the app's own plugin folders (a feature: plugins/<name>/ and its row) rather than a registry import. Each one that runs
   // is imported here; all of them, off or on, belong to their row, so the extensions row never starts them a second time.

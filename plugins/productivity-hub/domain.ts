@@ -240,10 +240,12 @@ export function matches(query: string | undefined, ...texts: readonly (string | 
 
 export const LIMITS = { title: 200, capture: 500, body: 20_000, tags: 12, estimate: 24 * 60 } as const
 
+const article = (word: string): string => (/^[aeiou]/iu.test(word) ? 'An' : 'A')
+
 export function cleanTitle(value: unknown, what = 'title'): string {
   const text = typeof value === 'string' ? value.trim().replace(/\s+/gu, ' ') : ''
-  if (text === '') throw new HubError('invalid', `A ${what} is needed.`)
-  if (text.length > LIMITS.title) throw new HubError('invalid', `A ${what} is at most ${LIMITS.title} characters.`)
+  if (text === '') throw new HubError('invalid', `${article(what)} ${what} is needed.`)
+  if (text.length > LIMITS.title) throw new HubError('invalid', `${article(what)} ${what} is at most ${LIMITS.title} characters.`)
   return text
 }
 
