@@ -20,7 +20,7 @@ import {
 } from '../productivity-hub/index.ts'
 import { hourRange, placeDay } from './layout.ts'
 
-const HOUR_PX = 52
+const HOUR_PX = 60
 
 const CALENDAR_LABELS: Record<(typeof CALENDARS)[number], string> = { meeting: 'Meeting', focus: 'Focus block', personal: 'Personal' }
 
@@ -82,14 +82,14 @@ const CSS = `<style>
 .c-ev{position:absolute;border-radius:6px;padding:5px 7px;font-size:11px;line-height:1.3;overflow:hidden;background:var(--card);border:1px solid var(--card-line);border-left:3px solid var(--bar-meeting)}
 .c-ev.focus{border-left-color:var(--bar-focus);background:color-mix(in srgb,var(--bar-focus) 14%,var(--card))}.c-ev.personal{border-left-color:var(--bar-personal);background:color-mix(in srgb,var(--bar-personal) 14%,var(--card))}
 .c-ev.meeting{background:color-mix(in srgb,var(--bar-meeting) 12%,var(--card))}
-.c-ev b{display:block;font-weight:600}.c-ev small{color:var(--muted)}.c-ev.clash{outline:2px solid var(--warn);outline-offset:-1px}
+.c-ev b{display:block;font-weight:600;overflow-wrap:anywhere}.c-ev small{color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c-ev.short{padding:3px 7px}.c-ev.short b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c-ev.short small{display:none}.c-ev.clash{outline:2px solid var(--warn);outline-offset:-1px}
 .c-ev form{position:absolute;right:3px;top:2px;opacity:0}.c-ev:hover form,.c-ev:focus-within form{opacity:1}.c-ev form button{color:var(--muted);font-size:12px;padding:0 3px}
 .c-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:14px}.c-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--bar-meeting)}
 .c-legend i.focus{background:var(--bar-focus)}.c-legend i.personal{background:var(--bar-personal)}.c-legend .warn{color:var(--warn)}
-.c-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;align-items:start}
-.c-scroll{overflow-x:auto}.c-scroll .c-grid{min-width:720px}
+.c-add{margin-top:22px}.c-add>summary{list-style:none;cursor:pointer;display:inline-flex}.c-add>summary::-webkit-details-marker{display:none}.c-add[open]>summary{display:none}.c-add .p-form{max-width:none}.c-add .p-form .grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px}.c-add .p-form .grid2{display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px}.c-add .actions{display:flex;gap:8px;align-items:center}
+.c-scroll{overflow-x:auto}.c-scroll .c-grid{min-width:760px}
 .c-ask ul{margin:8px 0 12px;padding-left:18px}
-@media(max-width:1100px){.c-layout{grid-template-columns:1fr}}
+@media(max-width:900px){.c-add .p-form .grid,.c-add .p-form .grid2{grid-template-columns:1fr 1fr}}
 </style>`
 
 function weekGrid(hub: Hub, shell: HubShell, monday: string): string {
@@ -108,7 +108,8 @@ function weekGrid(hub: Hub, shell: HubShell, monday: string): string {
         .map(({ event, top, height: h, lane, lanes }) => {
           const clash = week.overlapping.has(event.id)
           const width = 100 / lanes
-          return `<div class="c-ev ${event.calendarId}${clash ? ' clash' : ''}" data-event="${escapeHtml(event.id)}" style="top:${(top / 60) * HOUR_PX}px;height:${Math.max((h / 60) * HOUR_PX - 2, 22)}px;left:calc(${lane * width}% + 2px);width:calc(${width}% - 4px)" title="${escapeHtml(`${event.title}, ${clock(event.startAt)}-${clock(event.endAt)}${clash ? ', overlaps another event' : ''}`)}"><b>${escapeHtml(event.title)}</b><small>${clock(event.startAt)}-${clock(event.endAt)}${clash ? ' · overlaps' : ''}</small><form method="post" action="${shell.href(`/calendar/events/${encodeURIComponent(event.id)}/delete`)}"><input type="hidden" name="week" value="${monday}"><button aria-label="Delete ${escapeHtml(event.title)}">×</button></form></div>`
+          const short = h < 45
+          return `<div class="c-ev ${event.calendarId}${clash ? ' clash' : ''}${short ? ' short' : ''}" data-event="${escapeHtml(event.id)}" style="top:${(top / 60) * HOUR_PX}px;height:${Math.max((h / 60) * HOUR_PX - 2, 22)}px;left:calc(${lane * width}% + 2px);width:calc(${width}% - 4px)" title="${escapeHtml(`${event.title}, ${clock(event.startAt)}-${clock(event.endAt)}${clash ? ', overlaps another event' : ''}`)}"><b>${escapeHtml(event.title)}</b><small>${clock(event.startAt)}-${clock(event.endAt)}${clash ? ' · overlaps' : ''}</small><form method="post" action="${shell.href(`/calendar/events/${encodeURIComponent(event.id)}/delete`)}"><input type="hidden" name="week" value="${monday}"><button aria-label="Delete ${escapeHtml(event.title)}">×</button></form></div>`
         })
         .join('')
       return `<div class="c-col${day === today ? ' today' : ''}" style="height:${height}px">${blocks}</div>`
@@ -127,24 +128,33 @@ interface FormValues {
   readonly projectId?: string
 }
 
-function eventForm(hub: Hub, shell: HubShell, monday: string, values: FormValues = {}): string {
-  const day = values.day ?? (weekStart(dayOf(hub.now())) === monday ? dayOf(hub.now()) : monday)
+function eventForm(hub: Hub, shell: HubShell, monday: string, values: FormValues | undefined): string {
+  const v = values ?? {}
+  const day = v.day ?? (weekStart(dayOf(hub.now())) === monday ? dayOf(hub.now()) : monday)
   const option = (value: string, label: string, chosen: string | undefined) =>
     `<option value="${escapeHtml(value)}"${value === chosen ? ' selected' : ''}>${escapeHtml(label)}</option>`
-  return `<form class="p-card p-form" id="add" method="post" action="${shell.href('/calendar/events')}">
+  // The panel is open when the page was asked for it (#add, a script opens it) or when it carries what the person typed.
+  return `<details class="c-add" id="add"${values === undefined ? '' : ' open'}><summary class="p-btn ghost">+ Add event</summary>
+<form class="p-card p-form" method="post" action="${shell.href('/calendar/events')}">
 <h2 class="serif" style="margin:0;font-size:20px">Add event</h2>
-<label class="p-field">Title<input name="title" required maxlength="200" value="${escapeHtml(values.title ?? '')}" placeholder="Design critique"></label>
+<div class="grid"><label class="p-field">Title<input name="title" required maxlength="200" value="${escapeHtml(v.title ?? '')}" placeholder="Design critique"></label>
 <label class="p-field">Day<input type="date" name="day" required value="${escapeHtml(day)}"></label>
-<div class="row"><label class="p-field">Starts<input type="time" name="start" required value="${escapeHtml(values.start ?? '10:00')}"></label><label class="p-field">Ends<input type="time" name="end" required value="${escapeHtml(values.end ?? '10:30')}"></label></div>
-<label class="p-field">Calendar<select name="calendarId">${CALENDARS.map((c) => option(c, CALENDAR_LABELS[c], values.calendarId ?? 'meeting')).join('')}</select></label>
-<label class="p-field">Space<select name="projectId">${option('', 'No space', values.projectId ?? '')}${hub
+<label class="p-field">Starts<input type="time" name="start" required value="${escapeHtml(v.start ?? '10:00')}"></label><label class="p-field">Ends<input type="time" name="end" required value="${escapeHtml(v.end ?? '10:30')}"></label></div>
+<div class="grid2"><label class="p-field">Calendar<select name="calendarId">${CALENDARS.map((c) => option(c, CALENDAR_LABELS[c], v.calendarId ?? 'meeting')).join('')}</select></label>
+<label class="p-field">Space<select name="projectId">${option('', 'No space', v.projectId ?? '')}${hub
     .projects()
-    .map((p) => option(p.id, p.name, values.projectId))
+    .map((p) => option(p.id, p.name, v.projectId))
     .join('')}</select></label>
-<label class="p-field">With or about<input name="detail" maxlength="120" value="${escapeHtml(values.detail ?? '')}" placeholder="Marta"></label>
-<button class="p-btn">Save event</button>
-</form>`
+<label class="p-field">With or about<input name="detail" maxlength="120" value="${escapeHtml(v.detail ?? '')}" placeholder="Marta"></label></div>
+<div class="actions"><button class="p-btn">Save event</button><a class="p-link" href="${shell.href(`/calendar?week=${monday}`)}">Cancel</a></div>
+</form></details>`
 }
+
+/** Opens the add panel when the page is opened at #add (the header's button, My Day's "+ Add event"). */
+const OPEN_ADD = `<script>
+function openAdd(){if(location.hash==='#add'){var d=document.getElementById('add');if(d){d.open=true;var i=d.querySelector('input[name=title]');if(i)i.focus()}}}
+openAdd();addEventListener('hashchange',openAdd);
+</script>`
 
 /** The time the form's day and HH:MM name, as the hub reads it. */
 function toInput(form: FormValues): EventInput {
@@ -173,9 +183,9 @@ export function apply(ctx: Context): void {
     const action = `<div style="display:flex;gap:6px"><a class="p-btn ghost" href="${shell.href(`/calendar?week=${addDays(monday, -7)}`)}" aria-label="Previous week">‹</a><a class="p-btn ghost" href="${shell.href('/calendar')}">This week</a><a class="p-btn ghost" href="${shell.href(`/calendar?week=${addDays(monday, 7)}`)}" aria-label="Next week">›</a><a class="p-btn" href="#add">+ Add event</a></div>`
     const main = `${CSS}${shell.header({ eyebrow: `Week of ${fmt(monday, { month: 'long', day: 'numeric', year: 'numeric' })}`, title: `${weekLabel(monday)}.`, lead: count === 0 ? 'A clear week. Block time for what matters before it fills up.' : `${count} ${count === 1 ? 'event' : 'events'} this week${clashes > 0 ? `, ${clashes} of them overlapping` : ''}.`, action })}
 ${extra.notice ?? ''}${extra.ask ?? ''}
-<div class="c-layout"><section>${weekGrid(hub, shell, monday)}<div class="c-legend"><span><i></i>Meetings</span><span><i class="focus"></i>Focus blocks</span><span><i class="personal"></i>Personal</span>${clashes > 0 ? '<span class="warn">Outlined: overlaps another event</span>' : ''}</div></section>
-<aside>${eventForm(hub, shell, monday, extra.values)}</aside></div>`
-    return shell.page({ active: 'calendar', title: 'Calendar', main })
+${eventForm(hub, shell, monday, extra.values)}
+<section>${weekGrid(hub, shell, monday)}<div class="c-legend"><span><i></i>Meetings</span><span><i class="focus"></i>Focus blocks</span><span><i class="personal"></i>Personal</span>${clashes > 0 ? '<span class="warn">Outlined: overlaps another event</span>' : ''}</div></section>`
+    return shell.page({ active: 'calendar', title: 'Calendar', main, scripts: OPEN_ADD })
   }
 
   const app = new Acryl()
